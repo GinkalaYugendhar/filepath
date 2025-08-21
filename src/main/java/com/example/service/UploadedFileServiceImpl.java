@@ -1,31 +1,32 @@
 package com.example.service;
 
-import java.util.List;
-
+import com.example.entity.UploadedFile;
+import com.example.repository.UploadedFileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.dao.UploadedFileDao;
-import com.example.model.UploadedFile;
+import java.util.Optional;
 
 @Service
-public class UploadedFileServiceImpl implements UploadedFileService
-{
+public class UploadedFileServiceImpl implements UploadedFileService {
+
 	@Autowired
-	private UploadedFileDao dao;
+	private UploadedFileRepository repo;
+
 	@Override
-	public String addUploadedFile(UploadedFile uploadedFile)
-	{
-		UploadedFile uploadedFile2=dao.insertUploadedFile(uploadedFile);
-		if (uploadedFile2!=null)
-		{
-			return "UploadedFile Added";
+	public String addUploadedFile(UploadedFile uploadedFile) {
+		// Check if file with same filename already exists
+		Optional<UploadedFile> existing = repo.findByFileName(uploadedFile.getFileName());
+		if (existing.isPresent()) {
+			return "File with name '" + uploadedFile.getFileName() + "' already exists.";
 		}
-		else
-		{
-			return "UploadedFile Not added..!!!";
+
+		// Save new file
+		UploadedFile saved = repo.save(uploadedFile);
+		if (saved != null) {
+			return "UploadedFile Added Successfully";
+		} else {
+			return "UploadedFile Not Added..!!!";
 		}
 	}
-	
-
 }

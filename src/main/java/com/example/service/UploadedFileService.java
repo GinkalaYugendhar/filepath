@@ -1,8 +1,6 @@
 package com.example.service;
 
-import java.util.List;
-
-import com.example.model.UploadedFile;
+import com.example.entity.UploadedFile;
 
 public interface UploadedFileService
 {

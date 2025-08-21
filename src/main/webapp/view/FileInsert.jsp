@@ -13,6 +13,14 @@
 			<input type="submit" value="Submit">
 		</form><br>
 		<!-- <a href="./allsongs">All Songs🎵</a>  -->
+		<%
+            String msg = (String) request.getAttribute("msg");
+            if (msg != null) {
+        %>
+                <p style="color:green;"><%= msg %></p>
+        <%
+            }
+        %>
 	</center>
 </body>
 </html>

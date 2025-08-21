@@ -1,14 +1,8 @@
 package com.example.controller;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ListIterator;
 
 import javax.servlet.annotation.MultipartConfig;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -18,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.example.model.UploadedFile;
+import com.example.entity.UploadedFile;
 import com.example.service.UploadedFileService;
 
 @Controller
@@ -66,7 +60,7 @@ public class FileController
 	    java.io.File dest = new java.io.File(filePath);
 	    multipartFile.transferTo(dest);
 
-	    model.addAttribute("msg", "File uploaded successfully at: " + filePath);
+	    model.addAttribute("msg", msg + filePath);
 	    return "FileInsert";
 	}
 
