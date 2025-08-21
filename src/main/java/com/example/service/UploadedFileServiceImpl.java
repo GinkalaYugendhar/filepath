@@ -5,6 +5,7 @@ import com.example.repository.UploadedFileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.Optional;
 
 @Service
@@ -28,5 +29,11 @@ public class UploadedFileServiceImpl implements UploadedFileService {
 		} else {
 			return "UploadedFile Not Added..!!!";
 		}
+	}
+
+	@Override
+	@Transactional
+	public void deleteFile(String filePath) {
+		repo.deleteByFilePath(filePath);
 	}
 }

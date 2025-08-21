@@ -8,4 +8,5 @@ public interface UploadedFileService
 	String addUploadedFile(UploadedFile uploadedFile);
 
 
+	void deleteFile(String filePath);
 }
