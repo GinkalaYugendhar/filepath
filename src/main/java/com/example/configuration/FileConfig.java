@@ -11,6 +11,7 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
@@ -20,6 +21,7 @@ import java.util.Properties;
 @Configuration
 @ComponentScan(basePackages = "com.example")
 @EnableJpaRepositories(basePackages = "com.example")
+@EnableScheduling  // ✅ Enable @Scheduled support
 public class FileConfig {
 
 	@Bean
