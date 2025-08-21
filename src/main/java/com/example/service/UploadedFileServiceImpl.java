@@ -18,8 +18,10 @@ public class UploadedFileServiceImpl implements UploadedFileService {
 	public String addUploadedFile(UploadedFile uploadedFile) {
 		// Check if file with same filename already exists
 		Optional<UploadedFile> existing = repo.findByFilePath(uploadedFile.getFilePath());
-		if (existing.isPresent()) {
-			return "File with name '" + uploadedFile.getFileName() + "' already exists.";
+		Optional<UploadedFile> existingfile = repo.findByFileName(uploadedFile.getFileName());
+		if (existing.isPresent() || existingfile.isPresent()) {
+			String filePath = existingfile.get().getFilePath();
+			return "File with name '" + uploadedFile.getFileName() + "' already exists. at - "+filePath;
 		}
 
 		// Save new file

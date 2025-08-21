@@ -24,7 +24,6 @@
 
     if (filePath != null && !filePath.isEmpty()) {
 %>
-    <p style="color:green;">This is Previous Path of the File: <%= filePath %></p>
     <form action="./relocatefile" method="post" enctype="multipart/form-data">
         <h1>Enter new File Path and select the File</h1>
         <input type="text" name="newpath" placeholder="Enter New Path" required/>

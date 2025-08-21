@@ -1,9 +1,12 @@
 package com.example.controller;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 
 import javax.servlet.annotation.MultipartConfig;
 
+import com.example.repository.UploadedFileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,6 +25,9 @@ public class FileController
 	@Autowired
 	private UploadedFileService service;
 
+	@Autowired
+	private UploadedFileRepository repo;
+
 	@RequestMapping("showinsert")
 	public String showInsert()
 	{
@@ -29,101 +35,89 @@ public class FileController
 	}
 
 	@RequestMapping(path = "uploadfile", method = RequestMethod.POST)
-	public String takeFile(@RequestParam("file") MultipartFile multipartFile, Model model) throws IOException {
-	    if (multipartFile.isEmpty()) {
-	        model.addAttribute("msg", "Please select a file to upload!");
-	        return "FileInsert";
-	    }
-
-	    // ✅ Always store in Documents/uploads folder
-	    String userHome = System.getProperty("user.home");
-	    String uploadDir = userHome + java.io.File.separator + "Documents" + java.io.File.separator + "uploads";
-	    java.io.File dir = new java.io.File(uploadDir);
-	    if (!dir.exists()) {
-	        dir.mkdirs();
-	    }
-
-	    // ✅ Absolute path where file will be stored
-	    String filePath = uploadDir + java.io.File.separator + multipartFile.getOriginalFilename();
-
-	    // ✅ 1) Read file bytes before transfer
-	    byte[] fileBytes = multipartFile.getBytes();
-
-	    // ✅ 2) Save to DB
-	    UploadedFile f = new UploadedFile();
-	    f.setFileData(fileBytes); // binary data
-	    f.setFileName(multipartFile.getOriginalFilename());
-	    f.setFilePath(filePath);  // absolute path
-	    String msg = service.addUploadedFile(f);
-
-	    // ✅ 3) Save to disk
-	    java.io.File dest = new java.io.File(filePath);
-	    multipartFile.transferTo(dest);
-
-	    model.addAttribute("msg", msg + filePath);
-		if (msg.equals("UploadedFile Added Successfully")) {
-			model.addAttribute("filePath", ""); // empty string instead of "null"
-		} else {
-			model.addAttribute("filePath", filePath);
-		}
-
-		return "FileInsert";
-	}
-	@RequestMapping(path = "relocatefile", method = RequestMethod.POST)
-	public String relocateFile(@RequestParam("file") MultipartFile multipartFile,
-							   @RequestParam("newpath") String newPath, Model model) throws IOException {
+	public String takeFile(@RequestParam("file") MultipartFile multipartFile,
+						   @RequestParam(value="folder", required=false) String folder,
+						   Model model) throws IOException {
 		if (multipartFile.isEmpty()) {
 			model.addAttribute("msg", "Please select a file to upload!");
 			return "FileInsert";
 		}
 
-		System.out.println(newPath);
-
-		// Store in Documents/uploads folder
 		String userHome = System.getProperty("user.home");
-		String uploadDir = userHome + java.io.File.separator + "Documents" + java.io.File.separator + "uploads";
-		java.io.File dir = new java.io.File(uploadDir);
+
+		// Use provided folder or default "uploads"
+		if (folder == null || folder.isEmpty()) {
+			folder = "uploads";
+		}
+
+		String uploadDir = userHome + File.separator + "Documents" + File.separator + folder;
+		File dir = new File(uploadDir);
 		if (!dir.exists()) {
 			dir.mkdirs();
 		}
 
-		// Absolute path of the old file to delete
-		String oldFilePath = uploadDir + java.io.File.separator + multipartFile.getOriginalFilename();
+		String filePath = uploadDir + File.separator + multipartFile.getOriginalFilename();
 
-		// 1️⃣ Delete file from DB
-		service.deleteFile(oldFilePath);
-
-		// 2️⃣ Delete file from disk
-		java.io.File oldFile = new java.io.File(oldFilePath);
-		if (oldFile.exists()) {
-			boolean deleted = oldFile.delete();
-			if (!deleted) {
-				System.out.println("Failed to delete file from disk: " + oldFilePath);
-			}
-		}
-
-		// 3️⃣ Read file bytes before transfer
-		byte[] fileBytes = multipartFile.getBytes();
-
-		// 4️⃣ Save new file to DB
+		// Save file bytes in DB
 		UploadedFile f = new UploadedFile();
-		f.setFileData(fileBytes);
+		f.setFileData(multipartFile.getBytes());
 		f.setFileName(multipartFile.getOriginalFilename());
-		f.setFilePath(newPath);  // new absolute path
+		f.setFilePath(filePath);
 		String msg = service.addUploadedFile(f);
 
-		// 5️⃣ Save new file to disk
-		java.io.File dest = new java.io.File(newPath);
-		multipartFile.transferTo(dest);
+		// Save physical file
+		multipartFile.transferTo(new File(filePath));
 
-		model.addAttribute("msg", msg + newPath);
-		if (msg.equals("UploadedFile Added Successfully")) {
-			model.addAttribute("filePath", ""); // empty string instead of "null"
-		} else {
-			model.addAttribute("filePath", newPath);
-		}
+		model.addAttribute("msg", msg);
+		model.addAttribute("filePath", msg.equals("UploadedFile Added Successfully") ? "" : "filePresent");
 
 		return "FileInsert";
 	}
+
+	@RequestMapping(path = "relocatefile", method = RequestMethod.POST)
+	public String relocateFile(@RequestParam("file") MultipartFile multipartFile,
+							   @RequestParam("newpath") String newPath, Model model) throws IOException {
+
+		if (multipartFile.isEmpty()) {
+			model.addAttribute("msg", "Please select a file to upload!");
+			return "FileInsert";
+		}
+
+		String fileName = multipartFile.getOriginalFilename();
+
+		// 1️⃣ Find existing file by name in DB
+		Optional<UploadedFile> existingFileOpt = repo.findByFileName(fileName);
+
+		if (existingFileOpt.isPresent()) {
+			UploadedFile existingFile = existingFileOpt.get();
+
+			// 2️⃣ Delete old file from disk
+			File oldFile = new File(existingFile.getFilePath());
+			if (oldFile.exists() && !oldFile.delete()) {
+				System.out.println("Failed to delete old file: " + oldFile.getAbsolutePath());
+			}
+
+			// 3️⃣ Delete old file record from DB
+			service.deleteFile(existingFile.getFilePath());
+		}
+
+		// 4️⃣ Save new file to DB
+		UploadedFile f = new UploadedFile();
+		f.setFileData(multipartFile.getBytes());
+		f.setFileName(fileName);
+		f.setFilePath(newPath);  // new absolute path
+		String msg = service.addUploadedFile(f);
+
+		// 5️⃣ Save file to new path on disk
+		File dest = new File(newPath);
+		if (!dest.getParentFile().exists()) dest.getParentFile().mkdirs();
+		multipartFile.transferTo(dest);
+
+		model.addAttribute("msg", msg + " at " + newPath);
+		model.addAttribute("filePath", msg.equals("UploadedFile Added Successfully") ? "" : "filePresent");
+
+		return "FileInsert";
+	}
+
 
 }

@@ -12,30 +12,26 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.entity.UploadedFile;
 import com.example.repository.UploadedFileRepository;
-
 @Component
 public class FileRelocationScheduler {
 
     @Autowired
     private UploadedFileRepository uploadedFileRepository;
 
-    // Run every 1 minutes
+    // Run every 1 minute
     @Scheduled(fixedRate = 60000)
-    @Transactional
     public void relocateFiles() {
         List<UploadedFile> files = uploadedFileRepository.findAll();
+        String userHome = System.getProperty("user.home");
+        String[] folders = {"uploads", "uploads1", "uploads2"};
 
         for (UploadedFile file : files) {
-            String dbPath = file.getFilePath(); // Path from DB
+            String dbPath = file.getFilePath();
             String fileName = file.getFileName();
-
-            // Possible folders
-            String userHome = System.getProperty("user.home");
-            String[] folders = {"uploads", "uploads1", "uploads2"};
 
             File currentFile = null;
 
-            // 1️⃣ Find the current file location
+            // Find the current file location
             for (String folder : folders) {
                 File f = new File(userHome + File.separator + "Documents" + File.separator + folder + File.separator + fileName);
                 if (f.exists()) {
@@ -44,24 +40,29 @@ public class FileRelocationScheduler {
                 }
             }
 
-            // 2️⃣ Skip if file already in correct location
-            if (currentFile != null && currentFile.getAbsolutePath().equals(dbPath)) {
-                continue;
-            }
-
-            // 3️⃣ Move the file to the new path from DB
-            if (currentFile != null) {
-                try {
-                    File targetFile = new File(dbPath);
-                    File targetDir = targetFile.getParentFile();
-                    if (!targetDir.exists()) targetDir.mkdirs();
-
-                    Files.move(currentFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                    System.out.println("Moved file " + fileName + " to " + dbPath);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    System.out.println("Failed to move file: " + fileName);
+            try {
+                if (currentFile == null) {
+                    System.out.println("File not found on disk: " + fileName);
+                    continue;
                 }
+
+                File dbFile = new File(dbPath);
+
+                // Skip if already in correct location
+                if (currentFile.getCanonicalPath().equals(dbFile.getCanonicalPath())) {
+                    continue;
+                }
+
+                // Ensure target folder exists
+                if (!dbFile.getParentFile().exists()) dbFile.getParentFile().mkdirs();
+
+                // Move the file
+                Files.move(currentFile.toPath(), dbFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                System.out.println("Moved file " + fileName + " to " + dbPath);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println("Failed to move file: " + fileName);
             }
         }
     }

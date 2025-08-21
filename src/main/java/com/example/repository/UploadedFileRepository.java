@@ -15,4 +15,6 @@ public interface UploadedFileRepository extends JpaRepository<UploadedFile, Inte
     @Modifying
     @Transactional
     void deleteByFilePath(String filePath);
+
+    Optional<UploadedFile> findByFileName(String fileName);
 }
