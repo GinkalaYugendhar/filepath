@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public interface UploadedFileRepository extends JpaRepository<UploadedFile, Integer>
 {
-    Optional<UploadedFile> findByFileName(String filename);
+    Optional<UploadedFile> findByFilePath(String filePath);
 
     @Modifying
     @Transactional
