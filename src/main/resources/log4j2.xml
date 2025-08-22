@@ -14,7 +14,7 @@
                 <Pattern>[%d{yyyy-MM-dd HH:mm:ss}] [%-5level] [%c{1}] - %msg%n</Pattern>
             </PatternLayout>
             <Policies>
-                <TimeBasedTriggeringPolicy />
+                <TimeBasedTriggeringPolicy/>
                 <SizeBasedTriggeringPolicy size="10MB"/>
             </Policies>
         </RollingFile>

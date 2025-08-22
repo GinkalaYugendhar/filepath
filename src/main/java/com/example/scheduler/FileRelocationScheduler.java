@@ -1,18 +1,17 @@
 package com.example.scheduler;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import java.util.List;
-
+import com.example.entity.UploadedFile;
+import com.example.repository.UploadedFileRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import com.example.entity.UploadedFile;
-import com.example.repository.UploadedFileRepository;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.List;
 
 @Component
 public class FileRelocationScheduler {

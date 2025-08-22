@@ -33,8 +33,6 @@
 <%
     }
 %>
-
-
 	</center>
 </body>
 </html>

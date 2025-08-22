@@ -1,11 +1,12 @@
 package com.example.entity;
 
-import javax.persistence.*;
 import lombok.Data;
+
+import javax.persistence.*;
 
 @Entity
 @Data
-@Table(name = "uploaded_file") // avoid using reserved keywords like "File"
+@Table(name = "uploaded_file")
 public class UploadedFile {
 
     @Id
@@ -14,11 +15,11 @@ public class UploadedFile {
 
     @Lob
     @Column(nullable = false, columnDefinition = "LONGBLOB")
-    private byte[] fileData;   // store file content
+    private byte[] fileData;
 
     @Column(nullable = false)
-    private String fileName;   // original file name
+    private String fileName;
 
     @Column(nullable = false)
-    private String filePath;   // optional, if you want to also save path
+    private String filePath;
 }

@@ -1,8 +1,7 @@
 package com.example.configuration;
 
-import javax.sql.DataSource;
-import javax.persistence.EntityManagerFactory;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -16,75 +15,70 @@ import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import javax.persistence.EntityManagerFactory;
+import javax.sql.DataSource;
 import java.util.Properties;
 
 @Configuration
 @ComponentScan(basePackages = "com.example")
 @EnableJpaRepositories(basePackages = "com.example")
-@EnableScheduling  // ✅ Enable @Scheduled support
+@EnableScheduling
 public class FileConfig {
 
-	private static final Logger logger = LoggerFactory.getLogger(FileConfig.class);
+    private static final Logger logger = LoggerFactory.getLogger(FileConfig.class);
 
-	@Bean
-	public ViewResolver getResolver() {
-		logger.info("Initializing ViewResolver for JSP views");
-		InternalResourceViewResolver vr = new InternalResourceViewResolver();
-		vr.setPrefix("/view/");
-		vr.setSuffix(".jsp");
-		return vr;
-	}
+    @Bean
+    public ViewResolver getResolver() {
+        logger.info("Initializing ViewResolver for JSP views");
+        InternalResourceViewResolver vr = new InternalResourceViewResolver();
+        vr.setPrefix("/view/");
+        vr.setSuffix(".jsp");
+        return vr;
+    }
 
-	// ✅ DataSource Bean
-	@Bean
-	public DataSource dataSource() {
-		logger.info("Setting up DataSource for MySQL database");
-		DriverManagerDataSource ds = new DriverManagerDataSource();
-		ds.setDriverClassName("com.mysql.cj.jdbc.Driver");
-		ds.setUrl("jdbc:mysql://localhost:3306/HyperGridK");
-		ds.setUsername("root");
-		ds.setPassword("12345678");
-		return ds;
-	}
+    @Bean
+    public DataSource dataSource() {
+        logger.info("Setting up DataSource for MySQL database");
+        DriverManagerDataSource ds = new DriverManagerDataSource();
+        ds.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        ds.setUrl("jdbc:mysql://localhost:3306/HyperGridK");
+        ds.setUsername("root");
+        ds.setPassword("12345678");
+        return ds;
+    }
 
-	// ✅ EntityManagerFactory Bean
-	@Bean
-	public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource) {
-		logger.info("Configuring EntityManagerFactory with Hibernate");
-		LocalContainerEntityManagerFactoryBean emf = new LocalContainerEntityManagerFactoryBean();
-		emf.setDataSource(dataSource);
-		emf.setPackagesToScan("com.example.entity"); // scan entities
-		emf.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
+    @Bean
+    public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource) {
+        logger.info("Configuring EntityManagerFactory with Hibernate");
+        LocalContainerEntityManagerFactoryBean emf = new LocalContainerEntityManagerFactoryBean();
+        emf.setDataSource(dataSource);
+        emf.setPackagesToScan("com.example.entity"); // scan entities
+        emf.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
 
-		Properties props = new Properties();
-		props.put("hibernate.dialect", "org.hibernate.dialect.MySQL8Dialect");
-		props.put("hibernate.hbm2ddl.auto", "update");
-		props.put("hibernate.show_sql", "true");
-		props.put("hibernate.format_sql", "false");
-		props.put("hibernate.use_sql_comments", "false");
-		emf.setJpaProperties(props);
+        Properties props = new Properties();
+        props.put("hibernate.dialect", "org.hibernate.dialect.MySQL8Dialect");
+        props.put("hibernate.hbm2ddl.auto", "update");
+        props.put("hibernate.show_sql", "true");
+        props.put("hibernate.format_sql", "false");
+        props.put("hibernate.use_sql_comments", "false");
+        emf.setJpaProperties(props);
 
-		return emf;
-	}
+        return emf;
+    }
 
-	// ✅ Transaction Manager
-	@Bean
-	public JpaTransactionManager transactionManager(EntityManagerFactory emf) {
-		logger.info("Initializing TransactionManager");
-		JpaTransactionManager tx = new JpaTransactionManager();
-		tx.setEntityManagerFactory(emf);
-		return tx;
-	}
+    @Bean
+    public JpaTransactionManager transactionManager(EntityManagerFactory emf) {
+        logger.info("Initializing TransactionManager");
+        JpaTransactionManager tx = new JpaTransactionManager();
+        tx.setEntityManagerFactory(emf);
+        return tx;
+    }
 
-	// ✅ Multipart Resolver
-	@Bean
-	public CommonsMultipartResolver multipartResolver() {
-		logger.info("Configuring MultipartResolver for file uploads");
-		CommonsMultipartResolver resolver = new CommonsMultipartResolver();
-		resolver.setMaxUploadSize(10_000_000L); // 10 MB
-		return resolver;
-	}
+    @Bean
+    public CommonsMultipartResolver multipartResolver() {
+        logger.info("Configuring MultipartResolver for file uploads");
+        CommonsMultipartResolver resolver = new CommonsMultipartResolver();
+        resolver.setMaxUploadSize(10_000_000L); // 10 MB
+        return resolver;
+    }
 }

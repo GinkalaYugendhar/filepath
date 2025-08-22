@@ -6,30 +6,30 @@ import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatche
 
 public class DispatcherServletInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
 
-	private static final Logger logger = LoggerFactory.getLogger(DispatcherServletInitializer.class);
+    private static final Logger logger = LoggerFactory.getLogger(DispatcherServletInitializer.class);
 
-	@Override
-	protected Class<?>[] getRootConfigClasses() {
-		logger.info("Loading Root Configuration Classes...");
-		return null; // if you have SecurityConfig or PersistenceConfig, add them here
-	}
+    @Override
+    protected Class<?>[] getRootConfigClasses() {
+        logger.info("Loading Root Configuration Classes...");
+        return null;
+    }
 
-	@Override
-	protected Class<?>[] getServletConfigClasses() {
-		logger.info("Loading Servlet Configuration Classes...");
-		Class<?>[] c = {FileConfig.class};
-		return c;
-	}
+    @Override
+    protected Class<?>[] getServletConfigClasses() {
+        logger.info("Loading Servlet Configuration Classes...");
+        Class<?>[] c = {FileConfig.class};
+        return c;
+    }
 
-	@Override
-	protected String[] getServletMappings() {
-		logger.info("Registering Servlet Mappings for DispatcherServlet...");
-		String[] s = {"/"};
-		logger.debug("Servlet Mappings configured: {}", (Object) s);
-		return s;
-	}
+    @Override
+    protected String[] getServletMappings() {
+        logger.info("Registering Servlet Mappings for DispatcherServlet...");
+        String[] s = {"/"};
+        logger.debug("Servlet Mappings configured: {}", (Object) s);
+        return s;
+    }
 
-	public DispatcherServletInitializer() {
-		logger.info("DispatcherServletInitializer created and initialized.");
-	}
+    public DispatcherServletInitializer() {
+        logger.info("DispatcherServletInitializer created and initialized.");
+    }
 }

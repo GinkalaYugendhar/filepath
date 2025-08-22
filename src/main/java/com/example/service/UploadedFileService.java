@@ -2,11 +2,10 @@ package com.example.service;
 
 import com.example.entity.UploadedFile;
 
-public interface UploadedFileService
-{
+public interface UploadedFileService {
 
-	String addUploadedFile(UploadedFile uploadedFile);
+    String addUploadedFile(UploadedFile uploadedFile);
 
 
-	void deleteFile(String filePath);
+    void deleteFile(String filePath);
 }
