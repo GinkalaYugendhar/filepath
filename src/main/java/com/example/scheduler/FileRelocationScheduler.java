@@ -5,15 +5,19 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.example.entity.UploadedFile;
 import com.example.repository.UploadedFileRepository;
+
 @Component
 public class FileRelocationScheduler {
+
+    private static final Logger logger = LoggerFactory.getLogger(FileRelocationScheduler.class);
 
     @Autowired
     private UploadedFileRepository uploadedFileRepository;
@@ -42,7 +46,7 @@ public class FileRelocationScheduler {
 
             try {
                 if (currentFile == null) {
-                    System.out.println("File not found on disk: " + fileName);
+                    logger.warn("File not found on disk: {}", fileName);
                     continue;
                 }
 
@@ -50,19 +54,24 @@ public class FileRelocationScheduler {
 
                 // Skip if already in correct location
                 if (currentFile.getCanonicalPath().equals(dbFile.getCanonicalPath())) {
+                    logger.debug("File {} already in correct location: {}", fileName, dbPath);
                     continue;
                 }
 
                 // Ensure target folder exists
-                if (!dbFile.getParentFile().exists()) dbFile.getParentFile().mkdirs();
+                if (!dbFile.getParentFile().exists()) {
+                    boolean created = dbFile.getParentFile().mkdirs();
+                    if (created) {
+                        logger.info("Created missing target directory: {}", dbFile.getParentFile().getAbsolutePath());
+                    }
+                }
 
                 // Move the file
                 Files.move(currentFile.toPath(), dbFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                System.out.println("Moved file " + fileName + " to " + dbPath);
+                logger.info("Moved file {} to {}", fileName, dbPath);
 
             } catch (Exception e) {
-                e.printStackTrace();
-                System.out.println("Failed to move file: " + fileName);
+                logger.error("Failed to move file: {}", fileName, e);
             }
         }
     }

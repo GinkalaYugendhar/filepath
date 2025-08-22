@@ -16,6 +16,9 @@ import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Properties;
 
 @Configuration
@@ -24,8 +27,11 @@ import java.util.Properties;
 @EnableScheduling  // ✅ Enable @Scheduled support
 public class FileConfig {
 
+	private static final Logger logger = LoggerFactory.getLogger(FileConfig.class);
+
 	@Bean
 	public ViewResolver getResolver() {
+		logger.info("Initializing ViewResolver for JSP views");
 		InternalResourceViewResolver vr = new InternalResourceViewResolver();
 		vr.setPrefix("/view/");
 		vr.setSuffix(".jsp");
@@ -35,6 +41,7 @@ public class FileConfig {
 	// ✅ DataSource Bean
 	@Bean
 	public DataSource dataSource() {
+		logger.info("Setting up DataSource for MySQL database");
 		DriverManagerDataSource ds = new DriverManagerDataSource();
 		ds.setDriverClassName("com.mysql.cj.jdbc.Driver");
 		ds.setUrl("jdbc:mysql://localhost:3306/HyperGridK");
@@ -46,6 +53,7 @@ public class FileConfig {
 	// ✅ EntityManagerFactory Bean
 	@Bean
 	public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource) {
+		logger.info("Configuring EntityManagerFactory with Hibernate");
 		LocalContainerEntityManagerFactoryBean emf = new LocalContainerEntityManagerFactoryBean();
 		emf.setDataSource(dataSource);
 		emf.setPackagesToScan("com.example.entity"); // scan entities
@@ -55,6 +63,8 @@ public class FileConfig {
 		props.put("hibernate.dialect", "org.hibernate.dialect.MySQL8Dialect");
 		props.put("hibernate.hbm2ddl.auto", "update");
 		props.put("hibernate.show_sql", "true");
+		props.put("hibernate.format_sql", "false");
+		props.put("hibernate.use_sql_comments", "false");
 		emf.setJpaProperties(props);
 
 		return emf;
@@ -63,6 +73,7 @@ public class FileConfig {
 	// ✅ Transaction Manager
 	@Bean
 	public JpaTransactionManager transactionManager(EntityManagerFactory emf) {
+		logger.info("Initializing TransactionManager");
 		JpaTransactionManager tx = new JpaTransactionManager();
 		tx.setEntityManagerFactory(emf);
 		return tx;
@@ -71,8 +82,9 @@ public class FileConfig {
 	// ✅ Multipart Resolver
 	@Bean
 	public CommonsMultipartResolver multipartResolver() {
+		logger.info("Configuring MultipartResolver for file uploads");
 		CommonsMultipartResolver resolver = new CommonsMultipartResolver();
-		resolver.setMaxUploadSize(10000000L);
+		resolver.setMaxUploadSize(10_000_000L); // 10 MB
 		return resolver;
 	}
 }
